@@ -37,10 +37,11 @@ class JiraClient:
 
         return issues['issues']
 
-    def add_worklog(self, issue, hours):
+    def add_worklog(self, issue, hours, work_date):
         self.jira.add_worklog(
             issue,
             timeSpentSeconds=hours * self.seconds_in_hour,
+            started=work_date,
             comment="auto log"
         )
 
