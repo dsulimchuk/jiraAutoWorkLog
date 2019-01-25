@@ -64,12 +64,11 @@ def findAlreadyLogged(jira_client, day):
 
 def add_work_log(jira_client, day, hours):
     issue = jira_client.queryIssues(
-        f"assignee = currentUser()  and status not in (Closed, Backlog, Open, Resolved) and project = {PROJECT} ORDER BY timespent DESC",
+        f"assignee = currentUser()  and status not in (Closed, Backlog, Open, Resolved) and project = {PROJECT}  AND issuetype in (Bug, Story,Sub-task ) ORDER BY timespent ASC",
         fetch_size=1
     )[0]
-    print(f"i want to log {hours} hour(s) at {day} to {issue['key']}")
-    jira_client.add_worklog(issue, hours)
-
+    print(f"i want to log {hours} hour(s) at {day} to {issue['key']} {issue['fields']['summary']}")
+    jira_client.add_worklog(issue['key'], hours)
 
 
 if __name__ == '__main__':
