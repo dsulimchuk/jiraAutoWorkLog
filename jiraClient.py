@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from jira import JIRA
 
 
@@ -7,25 +9,27 @@ class JiraClient:
     def __init__(self, url, login, password) -> None:
         self.jira = JIRA(url, auth=(login, password))
 
-    def queryWorklog(self, jql_str):
+    def queryWorklog(self, work_day: date):
         issues = self.jira.search_issues(
-            jql_str=jql_str,
+            jql_str=f'assignee = currentUser() AND worklogAuthor =currentUser() AND worklogDate = "{work_day}"',
             json_result=True,
-            maxResults=10000,
-            fields="timespent, timeestimate, timeoriginalestimate"
+            maxResults=10000
         )
 
         timespent = 0
-        originalEstimate = 0
-        for row in issues['issues']:
-            # print(row['key'], "  ", row['fields'])
-            if row['fields']['timespent'] is not None:
-                timespent += row['fields']['timespent']
-            if row['fields']['timeoriginalestimate'] is not None:
-                originalEstimate += row['fields']['timeoriginalestimate']
+        start_of_date = datetime.combine(work_day, datetime.min.time())
+        end_of_date = datetime.today().replace(year=work_day.year, month=work_day.month, day=work_day.day, hour=23,
+                                               minute=59, second=59)
 
-        return {'timespent': timespent / self.seconds_in_hour,
-                'originalEstimate': originalEstimate / self.seconds_in_hour}
+        for row in issues['issues']:
+            worklogs = self.jira.worklogs(row['key'])
+            for wl in worklogs:
+                logged_at = datetime.strptime(wl.started, "%Y-%m-%dT%H:%M:%S.%f%z").replace(tzinfo=None)
+                if start_of_date <= logged_at < end_of_date:
+                    max_seconds_in_day = (end_of_date - logged_at).seconds
+                    timespent += min(wl.timeSpentSeconds, max_seconds_in_day)
+
+        return timespent / self.seconds_in_hour
 
     def queryIssues(self, jql_str, fetch_size=10000):
         issues = self.jira.search_issues(

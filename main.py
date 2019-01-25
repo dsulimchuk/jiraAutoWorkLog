@@ -16,12 +16,12 @@ def main():
     now = date.today()
     working_days_in_current_month = workingdays(now)
 
-    for day in working_days_in_current_month:
-        spent = findAlreadyLogged(jira_client, day)
+    for working_day in working_days_in_current_month:
+        spent = findAlreadyLogged(jira_client, working_day)
         if spent < 8:
-            add_work_log(jira_client, day, 8 - spent)
+            add_work_log(jira_client, working_day, 8 - spent)
         else:
-            print(f"at {day} all ok!")
+            print(f"at {working_day} all ok!")
 
 
 def getAllHolidays(current_month, current_year):
@@ -55,11 +55,8 @@ def init_jira():
     return jira_time_aggregator
 
 
-def findAlreadyLogged(jira_client, day):
-    time = jira_client.queryWorklog(
-        f'assignee = currentUser() AND worklogAuthor =currentUser() AND worklogDate = "{day}"',
-    )
-    return time["timespent"]
+def findAlreadyLogged(jira_client, working_day):
+    return jira_client.queryWorklog(working_day)
 
 
 def add_work_log(jira_client, work_date, hours):
