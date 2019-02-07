@@ -11,7 +11,7 @@ class JiraClient:
 
     def queryWorklog(self, work_day: date):
         issues = self.jira.search_issues(
-            jql_str=f'assignee = currentUser() AND worklogAuthor =currentUser() AND worklogDate = "{work_day}"',
+            jql_str=f'worklogAuthor =currentUser() AND worklogDate = "{work_day}"',
             json_result=True,
             maxResults=10000
         )

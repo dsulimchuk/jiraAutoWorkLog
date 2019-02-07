@@ -21,7 +21,7 @@ def main():
         if spent < 8:
             add_work_log(jira_client, working_day, 8 - spent)
         else:
-            print(f"at {working_day} all ok!")
+            print(f"at {working_day} all ok! (spent {spent}h)")
 
 
 def getAllHolidays(current_month, current_year):
@@ -30,7 +30,7 @@ def getAllHolidays(current_month, current_year):
         for row in spamreader:
             if row[0] == str(current_year):
                 row[current_month].split(',')
-                all_holidays_in_month = set(map(lambda x: int(x), row[current_month].split(',')))
+                all_holidays_in_month = [int(day) for day in row[current_month].split(',') if not day.endswith("*")]
                 # print(f'All holidays in {current_year}.{current_month}: {all_holidays_in_month}')
                 return all_holidays_in_month
 
